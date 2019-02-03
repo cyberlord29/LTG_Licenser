@@ -3,6 +3,7 @@ from .product import Product
 from .user import User
 import random
 import string
+import json
 
 def generate_license_id():
     return ''.join(
@@ -34,6 +35,6 @@ class License(db.Model):
             "account_number": self.account_number,
             "start_time": str(self.start_time),
             "end_time": str(self.end_time),
-            "user": self.user.to_dict(),
-            "product": self.product.to_dict()
+            "user": json.dumps(self.user.to_dict()),
+            "product": json.dumps(self.product.to_dict())
         }

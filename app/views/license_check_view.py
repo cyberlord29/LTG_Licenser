@@ -38,6 +38,20 @@ def check_status():
             }
         ), 400
 
+@app.route("/licenses/<id>/<product>/<accountNumber>", methods=["GET"])
+def isValid(id,accountNumber,product):
+    license = License.query.get(id)
+    print(datetime.utcnow())
+    if license is None:
+        return jsonify({}),401
+    elif license.account_number == accountNumber and Product.query.get(product) is not None :
+        if datetime.utcnow() >= license.end_time:
+            return jsonify({'status':'expired'}),401
+        else:
+            return jsonify({'status':'valid'}), 200
+    else:
+        return jsonify({'status':'expired'}),401
+    
 
 @app.route("/licenses", methods=["GET"])
 def list_licenses():
@@ -101,8 +115,8 @@ def create_license():
             account_number=data["accountNumber"],
             user=user,
             product=product,
-            start_time=datetime.fromtimestamp(int(data["startTime"])),
-            end_time=datetime.fromtimestamp(int(data["endTime"]))
+            start_time=datetime.utcfromtimestamp(int(data["startTime"])),
+            end_time=datetime.utcfromtimestamp(int(data["endTime"]))
         )   
         print(new_license)
         db.session.add(new_license)
