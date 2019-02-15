@@ -41,16 +41,25 @@ def check_status():
 @app.route("/licenses/<id>/<product>/<accountNumber>", methods=["GET"])
 def isValid(id,accountNumber,product):
     license = License.query.get(id)
+    prod = Product.query.get(product)
     print(datetime.utcnow())
     if license is None:
-        return jsonify({}),401
-    elif license.account_number == accountNumber and Product.query.get(product) is not None :
+        return jsonify({'status':'invalid key'}),401
+    if prod is None :
+        if license.account_number == accountNumber and Product.query.get('all').id==license.product_id :
+            if datetime.utcnow() >= license.end_time:
+                return jsonify({'status':'expired'}),401
+            else:
+                return jsonify({'status':'valid for all'}),200
+        else:
+            return jsonify({'status':'invalid product'}),401
+    elif license.account_number == accountNumber and  ( Product.query.get('all').id == license.product_id or prod.id == license.product_id  ) :
         if datetime.utcnow() >= license.end_time:
             return jsonify({'status':'expired'}),401
         else:
             return jsonify({'status':'valid'}), 200
     else:
-        return jsonify({'status':'expired'}),401
+        return jsonify({'status':'invalid'}),401
     
 
 @app.route("/licenses", methods=["GET"])
