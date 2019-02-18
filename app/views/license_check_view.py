@@ -38,11 +38,13 @@ def check_status():
             }
         ), 400
 
-@app.route("/licenses/<id>/<product>/<accountNumber>", methods=["GET"])
-def isValid(id,accountNumber,product):
-    license = License.query.get(id)
+@app.route("/licenses/<product>/<accountNumber>", methods=["GET"])
+def isValid(accountNumber,product):
+    account_number=accountNumber
     prod = Product.query.get(product)
-    print(datetime.utcnow())
+    if prod is None:
+        prod = Product.query.get("all")
+    license = License.query.filter_by(product_id=prod.id,account_number=accountNumber).first()
     if license is None:
         return jsonify({'status':'invalid key'}),401
     if prod is None :
