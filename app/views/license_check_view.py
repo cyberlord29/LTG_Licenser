@@ -81,6 +81,77 @@ def get_license(id):
         )
     return jsonify(license.to_dict()), 200
 
+@app.route("/licenses", methods=["DELETE"])
+def delete_license():
+    data = request.get_json()
+    required_params = ["id"]
+    try:
+        assert all(param in data for param in required_params)
+        license = License.query.get(data["id"])
+        if license is None:
+            return jsonify(
+                {
+                    "msg":"License not found"
+                }, 404
+            )
+        else:
+            db.session.delete(license)
+            db.session.commit()
+            return jsonify({"msg":"License Deleted"}), 200
+    except AssertionError:
+        print('errorAssert')
+    except exc.IntegrityError:
+        print('errorInt')
+
+@app.route("/licenses", methods=["PATCH"])
+def modify_license():
+    data = request.get_json()
+    required_params = [ "id", "email", "productName", "startTime", "endTime", "accountNumber","firstName","lastName"]
+    try:
+        assert all(param in data for param in required_params)
+        license = License.query.get(data["id"])
+        product = Product.query.get(data["productName"])
+        user = User.query.get(data["email"])
+        print( license , product , user)
+        if license is None:
+            return jsonify(
+                {
+                    "msg":"License not found"
+                }, 404
+            )
+        else:
+            license.account_number=data["accountNumber"]
+            license.end_time = datetime.utcfromtimestamp(int(data["endTime"]))
+        print(Product.query.filter_by(id=license.product_id).first())
+        if product != Product.query.filter_by(id=license.product_id).first():
+            productNew = Product.query.get(data["productName"])
+            if productNew is None : 
+                new_product = Product(name=data["productName"],
+                                    platform='na',
+                                    version='na')
+                db.session.add(new_product)
+                db.session.commit()
+                license.product_id = new_product.id
+            else:
+                license.product_id = productNew.id
+        userNew = User.query.get(data["email"])
+        if user != User.query.get(license.user_email) :
+            if userNew is None : 
+                new_user = User(email=data["email"],first_name=data["firstName"],last_name=data["lastName"])
+                db.session.add(new_user)
+                db.session.commit()
+                license.user_email = new_user.email
+            else:
+                license.user_email = userNew.email
+        userNew.first_name = data["firstName"]
+        userNew.last_name = data["lastName"]
+        db.session.commit()
+        return jsonify({"msg":"License Modified"}), 200
+    except AssertionError:
+        print('errorAssert')
+    except exc.IntegrityError:
+        print('errorInt')
+
 
 @app.route("/licenses", methods=["POST"])
 def create_license():
