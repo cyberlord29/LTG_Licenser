@@ -121,7 +121,7 @@ def modify_license():
             )
         else:
             license.account_number=data["accountNumber"]
-            license.end_time = datetime.utcfromtimestamp(int(data["endTime"]))
+            license.end_time = datetime.utcfromtimestamp(int(data["endTime"]/1000))
         print(Product.query.filter_by(id=license.product_id).first())
         if product != Product.query.filter_by(id=license.product_id).first():
             productNew = Product.query.get(data["productName"])
