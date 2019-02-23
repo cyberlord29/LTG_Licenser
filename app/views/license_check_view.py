@@ -143,8 +143,8 @@ def modify_license():
                 license.user_email = new_user.email
             else:
                 license.user_email = userNew.email
-        userNew.first_name = data["firstName"]
-        userNew.last_name = data["lastName"]
+                userNew.first_name = data["firstName"]
+                userNew.last_name = data["lastName"]
         db.session.commit()
         return jsonify({"msg":"License Modified"}), 200
     except AssertionError:
